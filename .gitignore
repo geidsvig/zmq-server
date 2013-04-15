@@ -1,0 +1,8 @@
+.classpath
+.project
+target
+project/target
+deb/usr
+.vagrant
+.settings
+
