@@ -12,36 +12,47 @@ package com.geidsvig.parallel
 
 import java.util.Random
 import org.zeromq.ZMQ
+import org.zeromq.ZMQ.{Context, Socket}
+import akka.actor.Actor
 
-object Ventilator {
+trait ZMQRequirements {
+  val zmqContext: Context
+}
 
-  val context = ZMQ.context(1)
+class Ventilator extends Actor {
+  this: ZMQRequirements =>
 
-  //  Socket to send messages on
-  val sender = context.socket(ZMQ.PUSH)
-  sender.bind("tcp://*:5557")
+  var zmqSender: Socket = _
+    
+  def receive = {
+    case 'init => {
+      //  Socket to send messages on
+      zmqSender = zmqContext.socket(ZMQ.PUSH)
+      zmqSender.bind("tcp://*:5557")
+    }
+    case 'start => {
+      println("Sending tasks to workers...\n")
 
-  println("Waiting 20 seconds for you to start your workers...")
-  Thread.sleep(20000) // 20 seconds
-  
-  println("Sending tasks to workers...\n")
+      //  The first message is "0" and signals start of batch
+      zmqSender.send("0\u0000".getBytes(), 0)
 
-  //  The first message is "0" and signals start of batch
-  sender.send("0\u0000".getBytes(), 0)
+      //  Initialize random number generator
+      val srandom = new Random(System.currentTimeMillis())
 
-  //  Initialize random number generator
-  val srandom = new Random(System.currentTimeMillis())
+      //  Send 100 tasks
+      var total_msec = 0 //  Total expected cost in msecs
+      for (i <- 1 to 100) {
+        //  Random workload from 1 to 100msecs
+        val workload = srandom.nextInt(100) + 1
+        total_msec += workload
+        print(workload + ".")
+        val string = String.format("%d\u0000", workload.asInstanceOf[Integer])
+        zmqSender.send(string.getBytes(), 0)
+      }
+      println("Total expected cost: " + total_msec + " msec")
 
-  //  Send 100 tasks
-  var total_msec = 0 //  Total expected cost in msecs
-  for (i <- 1 to 100) {
-    //  Random workload from 1 to 100msecs
-    val workload = srandom.nextInt(100) + 1
-    total_msec += workload
-    print(workload + ".")
-    val string = String.format("%d\u0000", workload.asInstanceOf[Integer])
-    sender.send(string.getBytes(), 0)
+    }
+    case _ => println("unsupported message")
   }
-  println("Total expected cost: " + total_msec + " msec")
 
 }

@@ -11,33 +11,44 @@ package com.geidsvig.parallel
 */
 
 import org.zeromq.ZMQ
-object Sink {
+import org.zeromq.ZMQ.{ Context, Socket }
+import akka.actor.Actor
 
-  //  Prepare our context and socket
-  val context = ZMQ.context(1)
-  val receiver = context.socket(ZMQ.PULL)
-  receiver.bind("tcp://*:5558")
+class Sink extends Actor {
+  this: ZMQRequirements =>
 
-  //  Wait for start of batch
-  val string = new String(receiver.recv(0))
+  var receiver: Socket = _
 
-  //  Start our clock now
-  val tstart = System.currentTimeMillis()
-
-  //  Process 100 confirmations
-  val total_msec = 0 //  Total calculated cost in msecs
-  for (task_nbr <- 1 to 100) {
-    val string = new String(receiver.recv(0)).trim()
-    if ((task_nbr / 10) * 10 == task_nbr) {
-      System.out.print(":")
-    } else {
-      System.out.print(".")
+  def receive = {
+    case 'init => {
+      //  Prepare our context and socket
+      receiver = zmqContext.socket(ZMQ.PULL)
+      receiver.bind("tcp://*:5558")
     }
-    System.out.flush()
-  }
-  //  Calculate and report duration of batch
-  val tend = System.currentTimeMillis()
+    case 'start => {
+      //  Wait for start of batch
+      val string = new String(receiver.recv(0))
 
-  println("Total elapsed time: " + (tend - tstart) + " msec")
+      //  Start our clock now
+      val tstart = System.currentTimeMillis()
+
+      //  Process 100 confirmations
+      val total_msec = 0 //  Total calculated cost in msecs
+      for (task_nbr <- 1 to 100) {
+        val string = new String(receiver.recv(0)).trim()
+        if ((task_nbr / 10) * 10 == task_nbr) {
+          System.out.print(":")
+        } else {
+          System.out.print(".")
+        }
+        System.out.flush()
+      }
+      //  Calculate and report duration of batch
+      val tend = System.currentTimeMillis()
+
+      println("Total elapsed time: " + (tend - tstart) + " msec")
+    }
+    case _ => {}
+  }
 
 }
