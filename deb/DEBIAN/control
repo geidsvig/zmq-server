@@ -1,4 +1,4 @@
-Package: geidsvig-distbones
+Package: geidsvig-zmq-server
 Version: 1.0.x 
 Maintainer: geidsvig
 Architecture: all
