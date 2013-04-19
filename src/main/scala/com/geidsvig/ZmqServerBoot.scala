@@ -6,6 +6,8 @@ import akka.actor.ActorSystem
 import akka.actor.Props
 import com.geidsvig.parallel.ZMQRequirements
 import parallel._
+import com.geidsvig.zmq.RouterReqRequirements
+import com.geidsvig.zmq.RouterReq
 
 /**
  * Bootstrap for ZmqServer Akka microkernel.
@@ -24,6 +26,7 @@ class ZmqServerBoot extends akka.kernel.Bootable {
     
     //WeatherUpdateServer
     
+    /*
     trait ZMQDependencies extends ZMQRequirements {
       val zmqContext: Context = ZMQ.context(1)
     }
@@ -37,6 +40,13 @@ class ZmqServerBoot extends akka.kernel.Bootable {
     println("Waiting 20 seconds for you to start your workers...")
     Thread.sleep(20000) // 20 seconds
     ventilator ! 'start
+    */
+    
+    trait RouterReqDependencies extends RouterReqRequirements {
+      val zmqContext: Context = ZMQ.context(1)
+    }
+    val router = system.actorOf(Props(new RouterReq("tcp://*:5559") with RouterReqDependencies))
+    
   }
 
   def shutdown = {
