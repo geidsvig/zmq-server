@@ -27,6 +27,7 @@ class RouterReq(url: String) extends Actor
   override def preStart() {
     zmqSocket = zmqContext.socket(ZMQ.ROUTER)
     zmqSocket.bind(url)
+    zmqSocket.setHWM(30000)
     
     self ! 'start
   }
@@ -42,7 +43,7 @@ class RouterReq(url: String) extends Actor
       while (true) {
         val address = zmqSocket.recv()
         val requestFrames = zmqReceive()
-        log info ("Received request: " + requestFrames)
+        //log info ("Received request: " + requestFrames)
         
         zmqSocket.send(address, ZMQ.SNDMORE)
         zmqSocket.send("".getBytes, ZMQ.SNDMORE)
