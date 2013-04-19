@@ -20,32 +20,12 @@ class ZmqServerBoot extends akka.kernel.Bootable {
 
     printf("Version string: %s, Version int: %d\n", ZMQ.getVersionString, ZMQ.getFullVersion)
 
-    // start up server
-    
-    //HelloWorldServer
-    
-    //WeatherUpdateServer
-    
-    /*
-    trait ZMQDependencies extends ZMQRequirements {
-      val zmqContext: Context = ZMQ.context(1)
-    }
-    val ventilator = system.actorOf(Props(new Ventilator with ZMQDependencies))
-    val sink = system.actorOf(Props(new Sink with ZMQDependencies))
-    
-    ventilator ! 'init
-    sink ! 'init
-    sink ! 'start
-    
-    println("Waiting 20 seconds for you to start your workers...")
-    Thread.sleep(20000) // 20 seconds
-    ventilator ! 'start
-    */
+    val routerBind = system.settings.config.getString("zmq.router.bind") // "tcp://*:5559"
     
     trait RouterReqDependencies extends RouterReqRequirements {
       val zmqContext: Context = ZMQ.context(1)
     }
-    val router = system.actorOf(Props(new RouterReq("tcp://*:5559") with RouterReqDependencies))
+    val router = system.actorOf(Props(new RouterReq(routerBind) with RouterReqDependencies))
     
   }
 
