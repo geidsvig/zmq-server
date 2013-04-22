@@ -26,9 +26,9 @@ class RouterReq(url: String) extends Actor
 
   override def preStart() {
     zmqSocket = zmqContext.socket(ZMQ.ROUTER)
-    zmqSocket.bind(url)
     zmqSocket.setSndHWM(4000000)
     zmqSocket.setRcvHWM(4000000)
+    zmqSocket.bind(url)
     
     self ! 'start
   }
